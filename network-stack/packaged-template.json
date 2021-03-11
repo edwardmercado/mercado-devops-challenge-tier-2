@@ -1,7 +1,7 @@
 
 AWSTemplateFormatVersion: '2010-09-09'
 Transform: AWS::Serverless-2016-10-31
-Description: 'Tier-1: Beginner Challenge - Elastic Beanstalk - VPC Stack
+Description: 'Tier-2: Intermediate Challenge - AWS ECS - VPC Stack
 
   '
 Resources:
@@ -247,145 +247,81 @@ Resources:
         ToPort: 3306
         SourceSecurityGroupId:
           Ref: AppSecurityGroup
-  NatGatewayAZA:
-    Type: AWS::EC2::NatGateway
+  AppLoadBalancer:
+    Type: AWS::ElasticLoadBalancingV2::LoadBalancer
     Properties:
-      AllocationId:
-        Fn::GetAtt:
-        - EIPAZA
-        - AllocationId
-      SubnetId:
-        Ref: PublicSubnetAZA
-  EIPAZA:
-    Type: AWS::EC2::EIP
-    Properties:
-      Domain: vpc
-  NatGatewayAZB:
-    Type: AWS::EC2::NatGateway
-    Properties:
-      AllocationId:
-        Fn::GetAtt:
-        - EIPAZB
-        - AllocationId
-      SubnetId:
-        Ref: PublicSubnetAZB
-  EIPAZB:
-    Type: AWS::EC2::EIP
-    Properties:
-      Domain: vpc
-  PrivateRouteTableAZA:
-    Type: AWS::EC2::RouteTable
-    Properties:
-      VpcId:
-        Ref: ApperVPC
-      Tags:
-      - Key: Name
-        Value: PrivateRTAZA
-  PrivateRouteTableAZB:
-    Type: AWS::EC2::RouteTable
-    Properties:
-      VpcId:
-        Ref: ApperVPC
-      Tags:
-      - Key: Name
-        Value: PrivateRTAZB
-  PrivateRouteAZA:
-    Type: AWS::EC2::Route
-    Properties:
-      RouteTableId:
-        Ref: PrivateRouteTableAZA
-      DestinationCidrBlock: 0.0.0.0/0
-      NatGatewayId:
-        Ref: NatGatewayAZA
-  PrivateRouteAZB:
-    Type: AWS::EC2::Route
-    Properties:
-      RouteTableId:
-        Ref: PrivateRouteTableAZB
-      DestinationCidrBlock: 0.0.0.0/0
-      NatGatewayId:
-        Ref: NatGatewayAZB
-  PrivateSubnetAZARouteTableAssociation:
-    Type: AWS::EC2::SubnetRouteTableAssociation
-    Properties:
-      RouteTableId:
-        Ref: PrivateRouteTableAZA
-      SubnetId:
-        Ref: PrivateSubnetAZA
-  PrivateSubnetAZBRouteTableAssociation:
-    Type: AWS::EC2::SubnetRouteTableAssociation
-    Properties:
-      RouteTableId:
-        Ref: PrivateRouteTableAZB
-      SubnetId:
-        Ref: PrivateSubnetAZB
+      SecurityGroups:
+      - Ref: AppSecurityGroup
+      Subnets:
+      - Ref: PublicSubnetAZA
+      - Ref: PublicSubnetAZB
 Outputs:
   VPCID:
     Description: A reference to the created VPC
     Value:
       Ref: ApperVPC
     Export:
-      Name: VPCId
+      Name: VPCId-tier2
   PublicSubnetAZA:
     Description: A reference to the public subnet
     Value:
       Ref: PublicSubnetAZA
     Export:
-      Name: PublicSubnetAZA
+      Name: PublicSubnetAZA-tier2
   PublicSubnetAZB:
     Description: A reference to the public subnet in AZ B
     Value:
       Ref: PublicSubnetAZB
     Export:
-      Name: PublicSubnetAZB
+      Name: PublicSubnetAZB-tier2
   PrivateSubnetAZA:
     Description: A reference to the private subnet in AZ A
     Value:
       Ref: PrivateSubnetAZA
     Export:
-      Name: PrivateSubnetAZA
+      Name: PrivateSubnetAZA-tier2
   PrivateSubnetAZB:
     Description: A reference to the private subnet in AZ B
     Value:
       Ref: PrivateSubnetAZB
     Export:
-      Name: PrivateSubnetAZB
+      Name: PrivateSubnetAZB-tier2
   DatabaseSubnetAZA:
     Description: A reference to the database subnet in AZ A
     Value:
       Ref: DBSubnetAZA
     Export:
-      Name: DatabaseSubnetAZA
+      Name: DatabaseSubnetAZA-tier2
   DatabaseSubnetAZB:
     Description: A reference to the database subnet in AZ B
     Value:
       Ref: DBSubnetAZB
     Export:
-      Name: DatabaseSubnetAZB
+      Name: DatabaseSubnetAZB-tier2
   LoadBalancerSecurityGroup:
     Description: A reference to the Load Balancer Security Group
     Value:
       Ref: LoadBalancerSecurityGroup
     Export:
-      Name: LoadBalancerSecurityGroup
+      Name: LoadBalancerSecurityGroup-tier2
   AppSecurityGroup:
     Description: A reference to the Application Security Group
     Value:
       Ref: AppSecurityGroup
     Export:
-      Name: AppSecurityGroup
+      Name: AppSecurityGroup-tier2
   DBSecurityGroup:
     Description: A reference to the Application Security Group
     Value:
       Ref: DBSecurityGroup
     Export:
-      Name: DBSecurityGroup
+      Name: DBSecurityGroup-tier2
   MyDB:
     Description: A reference to the Database instance
     Value:
       Ref: MyDB
     Export:
-      Name: MyDB
+      Name: MyDB-tier2
   MyDBPort:
     Description: A reference to the Database instance
     Value:
@@ -393,7 +329,7 @@ Outputs:
       - MyDB
       - Endpoint.Port
     Export:
-      Name: MyDBPort
+      Name: MyDBPort-tier2
   MyDBAddress:
     Description: A reference to the Database instance
     Value:
@@ -401,4 +337,4 @@ Outputs:
       - MyDB
       - Endpoint.Address
     Export:
-      Name: MyDBAddress
+      Name: MyDBAddress-tier2

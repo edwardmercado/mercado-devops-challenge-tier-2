@@ -17,9 +17,7 @@ phases:
     commands:
       - echo Entered the build phase...
       - echo Build started on `date`
-      - cd express-miniapp/
-      - printf "HOST=$DB_ADDRESS\nUSERNAME=dbusername\nPASSWORD=itsyourday\nDATABASE=mydb" > .env 
-      - npm install
+
     finally: 
       - echo This always runs even if the build phase commands fails
   post_build:

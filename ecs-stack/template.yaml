@@ -1,0 +1,76 @@
+AWSTemplateFormatVersion: '2010-09-09'
+Transform: AWS::Serverless-2016-10-31
+Description: >
+  Tier-2: Intermediate Challenge - AWS ECS - ECS Stack
+
+Resources:
+  MyContainerRepository: 
+    Type: AWS::ECR::Repository
+    Properties: 
+      RepositoryName: emercado-tier2-ecr-repository
+      RepositoryPolicyText: 
+        Version: "2012-10-17"
+        Statement: 
+          - 
+            Sid: AllowPushPull
+            Effect: Allow
+            Principal: 
+              Service: 
+                - cloudformation.amazonaws.com
+                - codebuild.amazonaws.com
+                - s3.amazonaws.com
+            Action: 
+              - "ecr:GetDownloadUrlForLayer"
+              - "ecr:BatchGetImage"
+              - "ecr:BatchCheckLayerAvailability"
+              - "ecr:PutImage"
+              - "ecr:InitiateLayerUpload"
+              - "ecr:UploadLayerPart"
+              - "ecr:CompleteLayerUpload"
+
+  TaskRole:
+    Type: 'AWS::IAM::Role'
+    Properties:
+      AssumeRolePolicyDocument:
+        Version: "2012-10-17"
+        Statement:
+          - Effect: Allow
+            Principal:
+              Service:
+                - codepipeline.amazonaws.com
+                - codebuild.amazonaws.com
+                - codedeploy.amazonaws.com
+                - s3.amazonaws.com
+                - cloudformation.amazonaws.com
+            Action:
+              - 'sts:AssumeRole'
+      Path: /
+      Policies:
+        - PolicyName: root
+          PolicyDocument:
+            Version: "2012-10-17"
+            Statement:
+              - Effect: Allow
+                Action:
+                  - ecs:RegisterTaskDefinition
+                  - ecs:ListTaskDefinitions
+                  - ecs:DescribeTaskDefinition
+                Resource: '*'    
+
+  AppTaskDefinition: 
+    Type: AWS::ECS::TaskDefinition
+    Properties: 
+      NetworkMode: "awsvpc"
+      ExecutionRoleArn: !Ref TaskRole
+      Cpu: 512
+      Memory: 1024
+      RequiresCompatibilities:
+        - "FARGATE"
+      ContainerDefinitions: 
+        - Name: express-miniapp
+          PortMappings:
+            - ContainerPort: 1337
+            - Protocol: tcp
+          Cpu: 256
+          Essential: true
+          Memory: 512

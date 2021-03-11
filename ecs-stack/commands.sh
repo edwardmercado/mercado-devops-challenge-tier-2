@@ -5,7 +5,7 @@
 aws cloudformation package --template ./template.yaml --s3-bucket challenge2-bucket --output json > packaged-template.json --region ap-southeast-1 --profile apper
 
 # deploy cfn
-aws cloudformation deploy --template ./packaged-template.json --stack-name emercado-tier-2-vpc-stack  --capabilities CAPABILITY_IAM --region ap-southeast-1 --profile apper
+aws cloudformation deploy --template ./packaged-template.json --stack-name emercado-tier-2-ecs-stack  --capabilities CAPABILITY_IAM --region ap-southeast-1 --profile apper
 
 # #Pub Sub 1
 # 10.0.0.0/19
