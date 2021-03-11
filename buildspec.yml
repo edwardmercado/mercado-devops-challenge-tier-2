@@ -1,0 +1,47 @@
+version: 0.2
+
+phases:
+  install:
+    runtime-versions:
+      nodejs: latest
+    commands:
+      - echo Entered the installing phase...
+    finally:
+      - echo This always runs even if the update or install command fails 
+  pre_build:
+    commands:
+      - echo Installing dependencies
+    finally: 
+      - echo This always runs even if the pre build phase commands fails
+  build:
+    commands:
+      - echo Entered the build phase...
+      - echo Build started on `date`
+      - cd express-miniapp/
+      - printf "HOST=$DB_ADDRESS\nUSERNAME=dbusername\nPASSWORD=itsyourday\nDATABASE=mydb" > .env 
+      - npm install
+    finally: 
+      - echo This always runs even if the build phase commands fails
+  post_build:
+    commands:
+      - echo Entered the post_build phase...
+      - echo Build completed on `date`
+
+artifacts:
+  files:
+    - package.json
+    - Procfile
+    - src/index.js
+    - src/middlewares.js
+    - node_modules/**/*
+    - .eslintrc.js
+    - .ebextensions
+    - .ebextensions/*
+    - package-lock.json
+    - .env
+  name: express-miniapp
+  base-directory: express-miniapp
+
+cache:
+  paths:
+    - node_modules/**/*

@@ -1,0 +1,404 @@
+
+AWSTemplateFormatVersion: '2010-09-09'
+Transform: AWS::Serverless-2016-10-31
+Description: 'Tier-1: Beginner Challenge - Elastic Beanstalk - VPC Stack
+
+  '
+Resources:
+  ApperVPC:
+    Type: AWS::EC2::VPC
+    Properties:
+      CidrBlock: 10.0.0.0/16
+      EnableDnsSupport: true
+      EnableDnsHostnames: true
+      Tags:
+      - Key: Name
+        Value: ApperVPC
+  ApperIGW:
+    Type: AWS::EC2::InternetGateway
+    Properties:
+      Tags:
+      - Key: Name
+        Value: Apper
+  InternetGatewayAttachment:
+    Type: AWS::EC2::VPCGatewayAttachment
+    Properties:
+      VpcId:
+        Ref: ApperVPC
+      InternetGatewayId:
+        Ref: ApperIGW
+  PublicSubnetAZA:
+    Type: AWS::EC2::Subnet
+    Properties:
+      VpcId:
+        Ref: ApperVPC
+      AvailabilityZone:
+        Fn::Select:
+        - 0
+        - Fn::GetAZs: ''
+      CidrBlock: 10.0.0.0/19
+      MapPublicIpOnLaunch: true
+      Tags:
+      - Key: Name
+        Value: PublicSubnetAZA
+  PublicSubnetAZB:
+    Type: AWS::EC2::Subnet
+    Properties:
+      VpcId:
+        Ref: ApperVPC
+      AvailabilityZone:
+        Fn::Select:
+        - 1
+        - Fn::GetAZs: ''
+      CidrBlock: 10.0.32.0/19
+      MapPublicIpOnLaunch: true
+      Tags:
+      - Key: Name
+        Value: PublicSubnetAZB
+  PrivateSubnetAZA:
+    Type: AWS::EC2::Subnet
+    Properties:
+      VpcId:
+        Ref: ApperVPC
+      AvailabilityZone:
+        Fn::Select:
+        - 0
+        - Fn::GetAZs: ''
+      CidrBlock: 10.0.64.0/19
+      MapPublicIpOnLaunch: false
+      Tags:
+      - Key: Name
+        Value: PrivateSubnetAZA
+  PrivateSubnetAZB:
+    Type: AWS::EC2::Subnet
+    Properties:
+      VpcId:
+        Ref: ApperVPC
+      AvailabilityZone:
+        Fn::Select:
+        - 1
+        - Fn::GetAZs: ''
+      CidrBlock: 10.0.96.0/19
+      MapPublicIpOnLaunch: false
+      Tags:
+      - Key: Name
+        Value: PrivateSubnetAZB
+  DBSubnetAZA:
+    Type: AWS::EC2::Subnet
+    Properties:
+      VpcId:
+        Ref: ApperVPC
+      AvailabilityZone:
+        Fn::Select:
+        - 0
+        - Fn::GetAZs: ''
+      CidrBlock: 10.0.128.0/19
+      MapPublicIpOnLaunch: false
+      Tags:
+      - Key: Name
+        Value: DBSubnetAZA
+  DBSubnetAZB:
+    Type: AWS::EC2::Subnet
+    Properties:
+      VpcId:
+        Ref: ApperVPC
+      AvailabilityZone:
+        Fn::Select:
+        - 1
+        - Fn::GetAZs: ''
+      CidrBlock: 10.0.160.0/19
+      MapPublicIpOnLaunch: false
+      Tags:
+      - Key: Name
+        Value: DBSubnetAZB
+  PublicRouteTable:
+    Type: AWS::EC2::RouteTable
+    Properties:
+      VpcId:
+        Ref: ApperVPC
+      Tags:
+      - Key: Name
+        Value: PublicRT
+  DefaultPublicRoute:
+    Type: AWS::EC2::Route
+    DependsOn: InternetGatewayAttachment
+    Properties:
+      RouteTableId:
+        Ref: PublicRouteTable
+      DestinationCidrBlock: 0.0.0.0/0
+      GatewayId:
+        Ref: ApperIGW
+  PublicSubnet1RouteTableAssociation:
+    Type: AWS::EC2::SubnetRouteTableAssociation
+    Properties:
+      RouteTableId:
+        Ref: PublicRouteTable
+      SubnetId:
+        Ref: PublicSubnetAZA
+  PublicSubnet2RouteTableAssociation:
+    Type: AWS::EC2::SubnetRouteTableAssociation
+    Properties:
+      RouteTableId:
+        Ref: PublicRouteTable
+      SubnetId:
+        Ref: PublicSubnetAZB
+  MyDB:
+    Type: AWS::RDS::DBInstance
+    Properties:
+      DBName: mydb
+      VPCSecurityGroups:
+      - Ref: DBSecurityGroup
+      DBSubnetGroupName:
+        Ref: MyDBSubnetGroup
+      DBInstanceClass: db.t2.micro
+      AllocatedStorage: 50
+      Engine: MySQL
+      EngineVersion: 8.0
+      MasterUsername: dbusername
+      MasterUserPassword: itsyourday
+      MultiAZ: true
+  MyDBSubnetGroup:
+    Type: AWS::RDS::DBSubnetGroup
+    Properties:
+      DBSubnetGroupDescription: emercado - RDS DB - Tier 1
+      SubnetIds:
+      - Ref: DBSubnetAZA
+      - Ref: DBSubnetAZB
+  LoadBalancerSecurityGroup:
+    Type: AWS::EC2::SecurityGroup
+    Properties:
+      GroupName: ELB-SG
+      GroupDescription: Load Balancer Security Group
+      VpcId:
+        Ref: ApperVPC
+      SecurityGroupIngress:
+      - IpProtocol: tcp
+        FromPort: 80
+        ToPort: 80
+        CidrIp: 0.0.0.0/0
+      - IpProtocol: tcp
+        FromPort: 1337
+        ToPort: 1337
+        CidrIp: 0.0.0.0/0
+      SecurityGroupEgress:
+      - IpProtocol: tcp
+        FromPort: 1337
+        ToPort: 1337
+        CidrIp: 0.0.0.0/0
+      - IpProtocol: tcp
+        FromPort: 80
+        ToPort: 80
+        CidrIp: 0.0.0.0/0
+  AppSecurityGroup:
+    Type: AWS::EC2::SecurityGroup
+    Properties:
+      GroupName: APP-SG
+      GroupDescription: Internal Application Security Group
+      VpcId:
+        Ref: ApperVPC
+      SecurityGroupIngress:
+      - IpProtocol: tcp
+        FromPort: 80
+        ToPort: 80
+        SourceSecurityGroupId:
+          Ref: LoadBalancerSecurityGroup
+      - IpProtocol: tcp
+        FromPort: 1337
+        ToPort: 1337
+        SourceSecurityGroupId:
+          Ref: LoadBalancerSecurityGroup
+      SecurityGroupEgress:
+      - IpProtocol: tcp
+        FromPort: 80
+        ToPort: 80
+        SourceSecurityGroupId:
+          Ref: LoadBalancerSecurityGroup
+      - IpProtocol: tcp
+        FromPort: 1337
+        ToPort: 1337
+        SourceSecurityGroupId:
+          Ref: LoadBalancerSecurityGroup
+  DBSecurityGroup:
+    Type: AWS::EC2::SecurityGroup
+    Properties:
+      GroupName: DB-SG
+      GroupDescription: Internal DB Security Group
+      VpcId:
+        Ref: ApperVPC
+      SecurityGroupIngress:
+      - IpProtocol: tcp
+        FromPort: 80
+        ToPort: 80
+        SourceSecurityGroupId:
+          Ref: AppSecurityGroup
+      - IpProtocol: tcp
+        FromPort: 3306
+        ToPort: 3306
+        SourceSecurityGroupId:
+          Ref: AppSecurityGroup
+      SecurityGroupEgress:
+      - IpProtocol: tcp
+        FromPort: 80
+        ToPort: 80
+        SourceSecurityGroupId:
+          Ref: AppSecurityGroup
+      - IpProtocol: tcp
+        FromPort: 3306
+        ToPort: 3306
+        SourceSecurityGroupId:
+          Ref: AppSecurityGroup
+  NatGatewayAZA:
+    Type: AWS::EC2::NatGateway
+    Properties:
+      AllocationId:
+        Fn::GetAtt:
+        - EIPAZA
+        - AllocationId
+      SubnetId:
+        Ref: PublicSubnetAZA
+  EIPAZA:
+    Type: AWS::EC2::EIP
+    Properties:
+      Domain: vpc
+  NatGatewayAZB:
+    Type: AWS::EC2::NatGateway
+    Properties:
+      AllocationId:
+        Fn::GetAtt:
+        - EIPAZB
+        - AllocationId
+      SubnetId:
+        Ref: PublicSubnetAZB
+  EIPAZB:
+    Type: AWS::EC2::EIP
+    Properties:
+      Domain: vpc
+  PrivateRouteTableAZA:
+    Type: AWS::EC2::RouteTable
+    Properties:
+      VpcId:
+        Ref: ApperVPC
+      Tags:
+      - Key: Name
+        Value: PrivateRTAZA
+  PrivateRouteTableAZB:
+    Type: AWS::EC2::RouteTable
+    Properties:
+      VpcId:
+        Ref: ApperVPC
+      Tags:
+      - Key: Name
+        Value: PrivateRTAZB
+  PrivateRouteAZA:
+    Type: AWS::EC2::Route
+    Properties:
+      RouteTableId:
+        Ref: PrivateRouteTableAZA
+      DestinationCidrBlock: 0.0.0.0/0
+      NatGatewayId:
+        Ref: NatGatewayAZA
+  PrivateRouteAZB:
+    Type: AWS::EC2::Route
+    Properties:
+      RouteTableId:
+        Ref: PrivateRouteTableAZB
+      DestinationCidrBlock: 0.0.0.0/0
+      NatGatewayId:
+        Ref: NatGatewayAZB
+  PrivateSubnetAZARouteTableAssociation:
+    Type: AWS::EC2::SubnetRouteTableAssociation
+    Properties:
+      RouteTableId:
+        Ref: PrivateRouteTableAZA
+      SubnetId:
+        Ref: PrivateSubnetAZA
+  PrivateSubnetAZBRouteTableAssociation:
+    Type: AWS::EC2::SubnetRouteTableAssociation
+    Properties:
+      RouteTableId:
+        Ref: PrivateRouteTableAZB
+      SubnetId:
+        Ref: PrivateSubnetAZB
+Outputs:
+  VPCID:
+    Description: A reference to the created VPC
+    Value:
+      Ref: ApperVPC
+    Export:
+      Name: VPCId
+  PublicSubnetAZA:
+    Description: A reference to the public subnet
+    Value:
+      Ref: PublicSubnetAZA
+    Export:
+      Name: PublicSubnetAZA
+  PublicSubnetAZB:
+    Description: A reference to the public subnet in AZ B
+    Value:
+      Ref: PublicSubnetAZB
+    Export:
+      Name: PublicSubnetAZB
+  PrivateSubnetAZA:
+    Description: A reference to the private subnet in AZ A
+    Value:
+      Ref: PrivateSubnetAZA
+    Export:
+      Name: PrivateSubnetAZA
+  PrivateSubnetAZB:
+    Description: A reference to the private subnet in AZ B
+    Value:
+      Ref: PrivateSubnetAZB
+    Export:
+      Name: PrivateSubnetAZB
+  DatabaseSubnetAZA:
+    Description: A reference to the database subnet in AZ A
+    Value:
+      Ref: DBSubnetAZA
+    Export:
+      Name: DatabaseSubnetAZA
+  DatabaseSubnetAZB:
+    Description: A reference to the database subnet in AZ B
+    Value:
+      Ref: DBSubnetAZB
+    Export:
+      Name: DatabaseSubnetAZB
+  LoadBalancerSecurityGroup:
+    Description: A reference to the Load Balancer Security Group
+    Value:
+      Ref: LoadBalancerSecurityGroup
+    Export:
+      Name: LoadBalancerSecurityGroup
+  AppSecurityGroup:
+    Description: A reference to the Application Security Group
+    Value:
+      Ref: AppSecurityGroup
+    Export:
+      Name: AppSecurityGroup
+  DBSecurityGroup:
+    Description: A reference to the Application Security Group
+    Value:
+      Ref: DBSecurityGroup
+    Export:
+      Name: DBSecurityGroup
+  MyDB:
+    Description: A reference to the Database instance
+    Value:
+      Ref: MyDB
+    Export:
+      Name: MyDB
+  MyDBPort:
+    Description: A reference to the Database instance
+    Value:
+      Fn::GetAtt:
+      - MyDB
+      - Endpoint.Port
+    Export:
+      Name: MyDBPort
+  MyDBAddress:
+    Description: A reference to the Database instance
+    Value:
+      Fn::GetAtt:
+      - MyDB
+      - Endpoint.Address
+    Export:
+      Name: MyDBAddress
