@@ -69,7 +69,6 @@ Resources:
       - Name: express-miniapp
         PortMappings:
         - ContainerPort: 1337
-        - Protocol: tcp
         Cpu: 256
         Essential: true
         Memory: 512
