@@ -202,7 +202,10 @@ Resources:
         FromPort: 53
         ToPort: 53
         CidrIp: 10.0.0.0/16
-        # SourceSecurityGroupId: !Ref ECRSecurityGroup
+      - IpProtocol: -1
+        CidrIp: 10.0.0.0/16
+      - IpProtocol: -1
+        SourcePrefixListId: pl-6fa54006
       SecurityGroupEgress:
       - IpProtocol: tcp
         FromPort: 80
@@ -226,6 +229,10 @@ Resources:
         ToPort: 53
         # SourceSecurityGroupId: !Ref AppSecurityGroup
         CidrIp: 10.0.0.0/16
+      - IpProtocol: -1
+        CidrIp: 10.0.0.0/16
+      - IpProtocol: -1
+        DestinationPrefixListId: pl-6fa54006
 
   DBSecurityGroup:
     Type: AWS::EC2::SecurityGroup
@@ -281,6 +288,10 @@ Resources:
         FromPort: 443
         ToPort: 443
         CidrIp: 10.0.96.0/19
+      - IpProtocol: -1
+        CidrIp: 10.0.0.0/16
+      - IpProtocol: -1
+        SourcePrefixListId: "pl-6fa54006"
       SecurityGroupEgress:
       - IpProtocol: tcp
         FromPort: 443
@@ -300,6 +311,10 @@ Resources:
         FromPort: 443
         ToPort: 443
         CidrIp: 10.0.96.0/19
+      - IpProtocol: -1
+        CidrIp: 10.0.0.0/16
+      - IpProtocol: -1
+        DestinationPrefixListId: pl-6fa54006
 
   #ECR VPC Endpoint - NATGatewayLimitExceeded
   ECREndpointDKR:
@@ -438,7 +453,7 @@ Resources:
       SubnetId: !Ref PrivateSubnetAZB
 
   
-
+  ##NAT GATEWAY###
   
 
 Outputs:
