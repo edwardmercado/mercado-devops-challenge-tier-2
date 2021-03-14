@@ -58,6 +58,15 @@ Resources:
         Essential: true
         Memory: 512
         Image: 485323199507.dkr.ecr.ap-southeast-1.amazonaws.com/emercado-tier2-ecr-repository:latest
+        Environment:
+        - Name: HOST
+          Value: emqlp1s10m39f9.cqnomkdi58mx.ap-southeast-1.rds.amazonaws.com
+        - Name: DATABASE
+          Value: mydb
+        - Name: PASSWORD
+          Value: itsyourday
+        - Name: USERNAME
+          Value: dbusername
         LogConfiguration:
           LogDriver: awslogs
           Options:
@@ -79,8 +88,9 @@ Resources:
     Properties:
       Cluster:
         Ref: AppECSCluster
-      DesiredCount: 0
-      LaunchType: EC2
+      DesiredCount: 2
+      LaunchType: FARGATE
+      PlatformVersion: 1.3.0
       SchedulingStrategy: REPLICA
       TaskDefinition:
         Ref: AppTaskDefinition
