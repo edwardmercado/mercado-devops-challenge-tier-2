@@ -247,14 +247,170 @@ Resources:
         ToPort: 3306
         SourceSecurityGroupId:
           Ref: AppSecurityGroup
-  AppLoadBalancer:
-    Type: AWS::ElasticLoadBalancingV2::LoadBalancer
+  ECREndpointDKR:
+    Type: AWS::EC2::VPCEndpoint
     Properties:
-      SecurityGroups:
-      - Ref: AppSecurityGroup
-      Subnets:
-      - Ref: PublicSubnetAZA
-      - Ref: PublicSubnetAZB
+      PrivateDnsEnabled: true
+      PolicyDocument:
+        Version: 2012-10-17
+        Statement:
+        - Effect: Allow
+          Principal: '*'
+          Action:
+          - '*'
+          Resource:
+          - '*'
+      VpcId:
+        Ref: ApperVPC
+      VpcEndpointType: Interface
+      SubnetIds:
+      - Ref: PrivateSubnetAZA
+      - Ref: PrivateSubnetAZB
+      ServiceName: com.amazonaws.ap-southeast-1.ecr.dkr
+      SecurityGroupIds:
+      - Ref: ECRSecurityGroup
+  LogsEndpoint:
+    Type: AWS::EC2::VPCEndpoint
+    Properties:
+      PrivateDnsEnabled: true
+      PolicyDocument:
+        Version: 2012-10-17
+        Statement:
+        - Effect: Allow
+          Principal: '*'
+          Action:
+          - '*'
+          Resource:
+          - '*'
+      VpcId:
+        Ref: ApperVPC
+      VpcEndpointType: Interface
+      SubnetIds:
+      - Ref: PrivateSubnetAZA
+      - Ref: PrivateSubnetAZB
+      ServiceName:
+        Fn::Sub: com.amazonaws.${AWS::Region}.logs
+      SecurityGroupIds:
+      - Ref: ECRSecurityGroup
+  SSMEndpoint:
+    Type: AWS::EC2::VPCEndpoint
+    Properties:
+      PrivateDnsEnabled: true
+      PolicyDocument:
+        Version: 2012-10-17
+        Statement:
+        - Effect: Allow
+          Principal: '*'
+          Action:
+          - '*'
+          Resource:
+          - '*'
+      VpcId:
+        Ref: ApperVPC
+      VpcEndpointType: Interface
+      SubnetIds:
+      - Ref: PrivateSubnetAZA
+      - Ref: PrivateSubnetAZB
+      ServiceName:
+        Fn::Sub: com.amazonaws.${AWS::Region}.ssm
+      SecurityGroupIds:
+      - Ref: ECRSecurityGroup
+  ECREndpointAPI:
+    Type: AWS::EC2::VPCEndpoint
+    Properties:
+      PrivateDnsEnabled: true
+      PolicyDocument:
+        Version: 2012-10-17
+        Statement:
+        - Effect: Allow
+          Principal: '*'
+          Action:
+          - '*'
+          Resource:
+          - '*'
+      VpcId:
+        Ref: ApperVPC
+      VpcEndpointType: Interface
+      SubnetIds:
+      - Ref: PrivateSubnetAZA
+      - Ref: PrivateSubnetAZB
+      ServiceName: com.amazonaws.ap-southeast-1.ecr.api
+      SecurityGroupIds:
+      - Ref: ECRSecurityGroup
+  S3Endpoint:
+    Type: AWS::EC2::VPCEndpoint
+    Properties:
+      PolicyDocument:
+        Version: 2012-10-17
+        Statement:
+        - Effect: Allow
+          Principal: '*'
+          Action:
+          - s3:*
+          Resource:
+          - '*'
+      RouteTableIds:
+      - Ref: PrivateRouteTableAZA
+      - Ref: PrivateRouteTableAZB
+      ServiceName:
+        Fn::Sub: com.amazonaws.${AWS::Region}.s3
+      VpcId:
+        Ref: ApperVPC
+  ECRSecurityGroup:
+    Type: AWS::EC2::SecurityGroup
+    Properties:
+      GroupName: ECR-SG
+      GroupDescription: ECR VPC Endpoint Security Group
+      VpcId:
+        Ref: ApperVPC
+      SecurityGroupIngress:
+      - IpProtocol: tcp
+        FromPort: 443
+        ToPort: 443
+        CidrIp: 10.0.64.0/19
+      - IpProtocol: tcp
+        FromPort: 443
+        ToPort: 443
+        CidrIp: 10.0.96.0/19
+      SecurityGroupEgress:
+      - IpProtocol: tcp
+        FromPort: 443
+        ToPort: 443
+        CidrIp: 10.0.64.0/19
+      - IpProtocol: tcp
+        FromPort: 443
+        ToPort: 443
+        CidrIp: 10.0.96.0/19
+  PrivateRouteTableAZA:
+    Type: AWS::EC2::RouteTable
+    Properties:
+      VpcId:
+        Ref: ApperVPC
+      Tags:
+      - Key: Name
+        Value: PrivateRTAZA
+  PrivateRouteTableAZB:
+    Type: AWS::EC2::RouteTable
+    Properties:
+      VpcId:
+        Ref: ApperVPC
+      Tags:
+      - Key: Name
+        Value: PrivateRTAZB
+  PrivateSubnetAZARouteTableAssociation:
+    Type: AWS::EC2::SubnetRouteTableAssociation
+    Properties:
+      RouteTableId:
+        Ref: PrivateRouteTableAZA
+      SubnetId:
+        Ref: PrivateSubnetAZA
+  PrivateSubnetAZBRouteTableAssociation:
+    Type: AWS::EC2::SubnetRouteTableAssociation
+    Properties:
+      RouteTableId:
+        Ref: PrivateRouteTableAZB
+      SubnetId:
+        Ref: PrivateSubnetAZB
 Outputs:
   VPCID:
     Description: A reference to the created VPC

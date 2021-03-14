@@ -4,29 +4,34 @@ Description: >
   Tier-2: Intermediate Challenge - AWS ECS - ECS Stack
 
 Resources:
-  MyContainerRepository: 
-    Type: AWS::ECR::Repository
-    Properties: 
-      RepositoryName: emercado-tier2-ecr-repository
-      RepositoryPolicyText: 
-        Version: "2012-10-17"
-        Statement: 
-          - 
-            Sid: AllowPushPull
-            Effect: Allow
-            Principal: 
-              Service: 
-                - cloudformation.amazonaws.com
-                - codebuild.amazonaws.com
-                - s3.amazonaws.com
-            Action: 
-              - "ecr:GetDownloadUrlForLayer"
-              - "ecr:BatchGetImage"
-              - "ecr:BatchCheckLayerAvailability"
-              - "ecr:PutImage"
-              - "ecr:InitiateLayerUpload"
-              - "ecr:UploadLayerPart"
-              - "ecr:CompleteLayerUpload"
+  # MyContainerRepository: 
+  #   Type: AWS::ECR::Repository
+  #   Properties: 
+  #     RepositoryName: emercado-tier2-ecr-repository
+  #     RepositoryPolicyText: 
+  #       Version: "2012-10-17"
+  #       Statement: 
+  #         - 
+  #           Sid: AllowPushPull
+  #           Effect: Allow
+  #           Principal: 
+  #             Service: 
+  #               - cloudformation.amazonaws.com
+  #               - codebuild.amazonaws.com
+  #               - s3.amazonaws.com
+  #           Action: 
+  #             - "ecr:GetDownloadUrlForLayer"
+  #             - "ecr:BatchGetImage"
+  #             - "ecr:BatchCheckLayerAvailability"
+  #             - "ecr:PutImage"
+  #             - "ecr:InitiateLayerUpload"
+  #             - "ecr:UploadLayerPart"
+  #             - "ecr:CompleteLayerUpload"
+
+  AppLogGroup:
+    Type: AWS::Logs::LogGroup
+    Properties:
+      LogGroupName: emercado-tier2-container-logs
 
   TaskRole:
     Type: 'AWS::IAM::Role'
@@ -42,6 +47,8 @@ Resources:
                 - codedeploy.amazonaws.com
                 - s3.amazonaws.com
                 - cloudformation.amazonaws.com
+                - ecs-tasks.amazonaws.com
+                - ecs.amazonaws.com
             Action:
               - 'sts:AssumeRole'
       Path: /
@@ -51,26 +58,111 @@ Resources:
             Version: "2012-10-17"
             Statement:
               - Effect: Allow
-                Action:
-                  - ecs:RegisterTaskDefinition
-                  - ecs:ListTaskDefinitions
-                  - ecs:DescribeTaskDefinition
+                Action: '*'
                 Resource: '*'    
 
   AppTaskDefinition: 
     Type: AWS::ECS::TaskDefinition
     Properties: 
       NetworkMode: awsvpc
+      Family: emercado-tier2-task
       ExecutionRoleArn: !Ref TaskRole
+      TaskRoleArn: !Ref TaskRole
       Cpu: 512
       Memory: 1024
       RequiresCompatibilities:
         - "FARGATE"
+        - "EC2"
       ContainerDefinitions: 
-        - Name: express-miniapp
+        - Name: express-miniapp-container
           PortMappings:
             - ContainerPort: 1337
           Cpu: 256
           Essential: true
           Memory: 512
-          Image: 
+          Image: 485323199507.dkr.ecr.ap-southeast-1.amazonaws.com/emercado-tier2-ecr-repository:latest
+          LogConfiguration:
+            LogDriver: awslogs
+            Options:
+              awslogs-region: !Ref AWS::Region
+              awslogs-group: !Ref AppLogGroup
+              awslogs-stream-prefix: ecs
+
+  AppECSCluster:
+    Type: 'AWS::ECS::Cluster'
+    Properties:
+      CapacityProviders:
+        - FARGATE
+      ClusterSettings:
+        - Name: containerInsights
+          Value: enabled
+
+  AppECSService: 
+    Type: AWS::ECS::Service
+    Properties: 
+      Cluster: !Ref AppECSCluster
+      DesiredCount: 0
+      LaunchType: FARGATE
+      # PlatformVersion: 1.3.0
+      SchedulingStrategy: REPLICA
+      TaskDefinition: !Ref AppTaskDefinition
+      DeploymentConfiguration:
+        DeploymentCircuitBreaker:
+          Enable: true
+          Rollback: true
+        MaximumPercent: 200
+        MinimumHealthyPercent: 100
+      NetworkConfiguration:
+        AwsvpcConfiguration:
+          Subnets:
+            - !ImportValue
+                PrivateSubnetAZA-tier2
+            - !ImportValue
+                PrivateSubnetAZB-tier2
+          SecurityGroups:
+            - !ImportValue
+                AppSecurityGroup-tier2
+      LoadBalancers:
+        - ContainerPort: 1337
+          ContainerName: express-miniapp-container
+          TargetGroupArn: !Ref AppLoadBalancerTargetGroup
+
+
+  ## LOAD BALANCER
+  AppLoadBalancer:
+    Type: AWS::ElasticLoadBalancingV2::LoadBalancer
+    Properties: 
+      SecurityGroups: 
+        - !ImportValue
+            AppSecurityGroup-tier2
+      Subnets:
+        - !ImportValue
+            PublicSubnetAZA-tier2
+        - !ImportValue
+            PublicSubnetAZB-tier2
+
+  AppLoadBalancerTargetGroup:
+    Type: AWS::ElasticLoadBalancingV2::TargetGroup
+    Properties:
+      HealthCheckEnabled: true
+      HealthCheckIntervalSeconds: 30
+      HealthCheckTimeoutSeconds: 5
+      UnhealthyThresholdCount: 2
+      HealthyThresholdCount: 2
+      HealthCheckPath: /
+      HealthCheckPort: 1337
+      HealthCheckProtocol: HTTP
+      Port: 1337
+      Protocol: HTTP
+      TargetType: ip
+      VpcId: !ImportValue VPCId-tier2
+  
+  AppLoadBalancerListener:
+    Type: AWS::ElasticLoadBalancingV2::Listener
+    Properties:
+      LoadBalancerArn: !Ref AppLoadBalancer
+      Port: 1337
+      Protocol: HTTP
+      DefaultActions:
+        - Type: forward
+          TargetGroupArn: !Ref AppLoadBalancerTargetGroup
