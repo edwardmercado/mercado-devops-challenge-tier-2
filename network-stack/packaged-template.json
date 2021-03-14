@@ -207,6 +207,18 @@ Resources:
         ToPort: 1337
         SourceSecurityGroupId:
           Ref: LoadBalancerSecurityGroup
+      - IpProtocol: tcp
+        FromPort: 443
+        ToPort: 443
+        CidrIp: 10.0.0.0/16
+      - IpProtocol: tcp
+        FromPort: 53
+        ToPort: 53
+        CidrIp: 10.0.0.0/16
+      - IpProtocol: udp
+        FromPort: 53
+        ToPort: 53
+        CidrIp: 10.0.0.0/16
       SecurityGroupEgress:
       - IpProtocol: tcp
         FromPort: 80
@@ -218,6 +230,18 @@ Resources:
         ToPort: 1337
         SourceSecurityGroupId:
           Ref: LoadBalancerSecurityGroup
+      - IpProtocol: tcp
+        FromPort: 443
+        ToPort: 443
+        CidrIp: 10.0.0.0/16
+      - IpProtocol: tcp
+        FromPort: 53
+        ToPort: 53
+        CidrIp: 10.0.0.0/16
+      - IpProtocol: udp
+        FromPort: 53
+        ToPort: 53
+        CidrIp: 10.0.0.0/16
   DBSecurityGroup:
     Type: AWS::EC2::SecurityGroup
     Properties:
@@ -247,6 +271,52 @@ Resources:
         ToPort: 3306
         SourceSecurityGroupId:
           Ref: AppSecurityGroup
+  ECRSecurityGroup:
+    Type: AWS::EC2::SecurityGroup
+    Properties:
+      GroupName: ECR-SG
+      GroupDescription: ECR VPC Endpoint Security Group
+      VpcId:
+        Ref: ApperVPC
+      SecurityGroupIngress:
+      - IpProtocol: tcp
+        FromPort: 443
+        ToPort: 443
+        CidrIp: 10.0.0.0/16
+      - IpProtocol: tcp
+        FromPort: 443
+        ToPort: 443
+        SourceSecurityGroupId:
+          Ref: AppSecurityGroup
+      - IpProtocol: tcp
+        FromPort: 53
+        ToPort: 53
+        CidrIp: 10.0.0.0/16
+      - IpProtocol: udp
+        FromPort: 53
+        ToPort: 53
+        CidrIp: 10.0.0.0/16
+      - IpProtocol: tcp
+        FromPort: 443
+        ToPort: 443
+        CidrIp: 10.0.96.0/19
+      SecurityGroupEgress:
+      - IpProtocol: tcp
+        FromPort: 443
+        ToPort: 443
+        CidrIp: 10.0.0.0/16
+      - IpProtocol: tcp
+        FromPort: 53
+        ToPort: 53
+        CidrIp: 10.0.0.0/16
+      - IpProtocol: udp
+        FromPort: 53
+        ToPort: 53
+        CidrIp: 10.0.0.0/16
+      - IpProtocol: tcp
+        FromPort: 443
+        ToPort: 443
+        CidrIp: 10.0.96.0/19
   ECREndpointDKR:
     Type: AWS::EC2::VPCEndpoint
     Properties:
@@ -356,31 +426,6 @@ Resources:
         Fn::Sub: com.amazonaws.${AWS::Region}.s3
       VpcId:
         Ref: ApperVPC
-  ECRSecurityGroup:
-    Type: AWS::EC2::SecurityGroup
-    Properties:
-      GroupName: ECR-SG
-      GroupDescription: ECR VPC Endpoint Security Group
-      VpcId:
-        Ref: ApperVPC
-      SecurityGroupIngress:
-      - IpProtocol: tcp
-        FromPort: 443
-        ToPort: 443
-        CidrIp: 10.0.64.0/19
-      - IpProtocol: tcp
-        FromPort: 443
-        ToPort: 443
-        CidrIp: 10.0.96.0/19
-      SecurityGroupEgress:
-      - IpProtocol: tcp
-        FromPort: 443
-        ToPort: 443
-        CidrIp: 10.0.64.0/19
-      - IpProtocol: tcp
-        FromPort: 443
-        ToPort: 443
-        CidrIp: 10.0.96.0/19
   PrivateRouteTableAZA:
     Type: AWS::EC2::RouteTable
     Properties:

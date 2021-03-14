@@ -189,6 +189,20 @@ Resources:
         FromPort: 1337
         ToPort: 1337
         SourceSecurityGroupId: !Ref LoadBalancerSecurityGroup
+      - IpProtocol: tcp
+        FromPort: 443
+        ToPort: 443
+        CidrIp: 10.0.0.0/16
+      - IpProtocol: tcp
+        FromPort: 53
+        ToPort: 53
+        # SourceSecurityGroupId: !Ref AppSecurityGroup
+        CidrIp: 10.0.0.0/16        
+      - IpProtocol: udp
+        FromPort: 53
+        ToPort: 53
+        CidrIp: 10.0.0.0/16
+        # SourceSecurityGroupId: !Ref ECRSecurityGroup
       SecurityGroupEgress:
       - IpProtocol: tcp
         FromPort: 80
@@ -198,6 +212,20 @@ Resources:
         FromPort: 1337
         ToPort: 1337
         SourceSecurityGroupId: !Ref LoadBalancerSecurityGroup
+      - IpProtocol: tcp
+        FromPort: 443
+        ToPort: 443
+        CidrIp: 10.0.0.0/16
+      - IpProtocol: tcp
+        FromPort: 53
+        ToPort: 53
+        # SourceSecurityGroupId: !Ref AppSecurityGroup
+        CidrIp: 10.0.0.0/16        
+      - IpProtocol: udp
+        FromPort: 53
+        ToPort: 53
+        # SourceSecurityGroupId: !Ref AppSecurityGroup
+        CidrIp: 10.0.0.0/16
 
   DBSecurityGroup:
     Type: AWS::EC2::SecurityGroup
@@ -223,6 +251,55 @@ Resources:
         FromPort: 3306
         ToPort: 3306
         SourceSecurityGroupId: !Ref AppSecurityGroup
+  
+  ECRSecurityGroup:
+    Type: AWS::EC2::SecurityGroup
+    Properties:
+      GroupName: "ECR-SG"
+      GroupDescription: "ECR VPC Endpoint Security Group"
+      VpcId: !Ref ApperVPC
+      SecurityGroupIngress:
+      - IpProtocol: tcp
+        FromPort: 443
+        ToPort: 443
+        CidrIp: 10.0.0.0/16
+      - IpProtocol: tcp
+        FromPort: 443
+        ToPort: 443
+        SourceSecurityGroupId: !Ref AppSecurityGroup
+      - IpProtocol: tcp
+        FromPort: 53
+        ToPort: 53
+        # SourceSecurityGroupId: !Ref AppSecurityGroup
+        CidrIp: 10.0.0.0/16        
+      - IpProtocol: udp
+        FromPort: 53
+        ToPort: 53
+        # SourceSecurityGroupId: !Ref AppSecurityGroup
+        CidrIp: 10.0.0.0/16
+      - IpProtocol: tcp
+        FromPort: 443
+        ToPort: 443
+        CidrIp: 10.0.96.0/19
+      SecurityGroupEgress:
+      - IpProtocol: tcp
+        FromPort: 443
+        ToPort: 443
+        CidrIp: 10.0.0.0/16
+      - IpProtocol: tcp
+        FromPort: 53
+        ToPort: 53
+        # SourceSecurityGroupId: !Ref AppSecurityGroup
+        CidrIp: 10.0.0.0/16        
+      - IpProtocol: udp
+        FromPort: 53
+        ToPort: 53
+        # SourceSecurityGroupId: !Ref AppSecurityGroup
+        CidrIp: 10.0.0.0/16
+      - IpProtocol: tcp
+        FromPort: 443
+        ToPort: 443
+        CidrIp: 10.0.96.0/19
 
   #ECR VPC Endpoint - NATGatewayLimitExceeded
   ECREndpointDKR:
@@ -313,27 +390,6 @@ Resources:
       SecurityGroupIds: 
         - !Ref ECRSecurityGroup
 
-  # ECREndpointGateway:
-  #   Type: 'AWS::EC2::VPCEndpoint'
-  #   Properties:
-  #     PolicyDocument:
-  #       Version: 2012-10-17
-  #       Statement:
-  #         - Effect: Allow
-  #           Principal: '*'
-  #           Action:
-  #             - '*'
-  #           Resource:
-  #             - '*'
-  #     VpcId: !Ref ApperVPC
-  #     VpcEndpointType: Interface
-  #     SubnetIds:
-  #       - !Ref PrivateSubnetAZB
-  #       - !Ref PrivateSubnetAZA
-  #     ServiceName: com.amazonaws.ap-southeast-1.ecr.api
-  #     SecurityGroupIds: 
-  #       - !Ref ECRSecurityGroup
-
   S3Endpoint:
     Type: 'AWS::EC2::VPCEndpoint'
     Properties:
@@ -352,30 +408,6 @@ Resources:
       ServiceName: !Sub 'com.amazonaws.${AWS::Region}.s3'
       VpcId: !Ref ApperVPC
 
-  ECRSecurityGroup:
-    Type: AWS::EC2::SecurityGroup
-    Properties:
-      GroupName: "ECR-SG"
-      GroupDescription: "ECR VPC Endpoint Security Group"
-      VpcId: !Ref ApperVPC
-      SecurityGroupIngress:
-      - IpProtocol: tcp
-        FromPort: 443
-        ToPort: 443
-        CidrIp: 10.0.64.0/19
-      - IpProtocol: tcp
-        FromPort: 443
-        ToPort: 443
-        CidrIp: 10.0.96.0/19
-      SecurityGroupEgress:
-      - IpProtocol: tcp
-        FromPort: 443
-        ToPort: 443
-        CidrIp: 10.0.64.0/19
-      - IpProtocol: tcp
-        FromPort: 443
-        ToPort: 443
-        CidrIp: 10.0.96.0/19
   
   PrivateRouteTableAZA:
     Type: AWS::EC2::RouteTable
@@ -392,20 +424,6 @@ Resources:
       Tags:
         - Key: Name
           Value: PrivateRTAZB
-
-  # PrivateRouteAZA:
-  #   Type: AWS::EC2::Route
-  #   Properties:
-  #     RouteTableId: !Ref PrivateRouteTableAZA
-  #     DestinationCidrBlock: 0.0.0.0/0
-  #     NatGatewayId: !Ref NatGatewayAZA
-
-  # PrivateRouteAZB:
-  #   Type: AWS::EC2::Route
-  #   Properties:
-  #     RouteTableId: !Ref PrivateRouteTableAZB
-  #     DestinationCidrBlock: 0.0.0.0/0
-  #     NatGatewayId: !Ref NatGatewayAZB
   
   PrivateSubnetAZARouteTableAssociation:
     Type: AWS::EC2::SubnetRouteTableAssociation
