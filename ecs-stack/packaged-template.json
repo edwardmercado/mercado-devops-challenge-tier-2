@@ -55,7 +55,6 @@ Resources:
         PortMappings:
         - ContainerPort: 1337
         Cpu: 256
-        Essential: true
         Memory: 512
         Image: 485323199507.dkr.ecr.ap-southeast-1.amazonaws.com/emercado-tier2-ecr-repository:latest
         Environment:
@@ -88,7 +87,7 @@ Resources:
     Properties:
       Cluster:
         Ref: AppECSCluster
-      DesiredCount: 2
+      DesiredCount: 0
       LaunchType: FARGATE
       PlatformVersion: 1.3.0
       SchedulingStrategy: REPLICA

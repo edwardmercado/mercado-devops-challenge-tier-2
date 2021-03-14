@@ -4,30 +4,6 @@ Description: >
   Tier-2: Intermediate Challenge - AWS ECS - ECS Stack
 
 Resources:
-  # MyContainerRepository: 
-  #   Type: AWS::ECR::Repository
-  #   Properties: 
-  #     RepositoryName: emercado-tier2-ecr-repository
-  #     RepositoryPolicyText: 
-  #       Version: "2012-10-17"
-  #       Statement: 
-  #         - 
-  #           Sid: AllowPushPull
-  #           Effect: Allow
-  #           Principal: 
-  #             Service: 
-  #               - cloudformation.amazonaws.com
-  #               - codebuild.amazonaws.com
-  #               - s3.amazonaws.com
-  #           Action: 
-  #             - "ecr:GetDownloadUrlForLayer"
-  #             - "ecr:BatchGetImage"
-  #             - "ecr:BatchCheckLayerAvailability"
-  #             - "ecr:PutImage"
-  #             - "ecr:InitiateLayerUpload"
-  #             - "ecr:UploadLayerPart"
-  #             - "ecr:CompleteLayerUpload"
-
   AppLogGroup:
     Type: AWS::Logs::LogGroup
     Properties:
@@ -78,7 +54,7 @@ Resources:
           PortMappings:
             - ContainerPort: 1337
           Cpu: 256
-          Essential: true
+          # Essential: true
           Memory: 512
           Image: 485323199507.dkr.ecr.ap-southeast-1.amazonaws.com/emercado-tier2-ecr-repository:latest
           Environment:
@@ -110,7 +86,7 @@ Resources:
     Type: AWS::ECS::Service
     Properties: 
       Cluster: !Ref AppECSCluster
-      DesiredCount: 2
+      DesiredCount: 0
       LaunchType: FARGATE
       PlatformVersion: 1.3.0
       SchedulingStrategy: REPLICA
