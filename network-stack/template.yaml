@@ -249,6 +249,8 @@ Resources:
         FromPort: 3306
         ToPort: 3306
         SourceSecurityGroupId: !Ref AppSecurityGroup
+      - IpProtocol: -1
+        SourceSecurityGroupId: !Ref AppSecurityGroup
       SecurityGroupEgress:
       - IpProtocol: tcp
         FromPort: 80
@@ -258,7 +260,9 @@ Resources:
         FromPort: 3306
         ToPort: 3306
         SourceSecurityGroupId: !Ref AppSecurityGroup
-  
+      - IpProtocol: -1
+        SourceSecurityGroupId: !Ref AppSecurityGroup
+
   ECRSecurityGroup:
     Type: AWS::EC2::SecurityGroup
     Properties:
@@ -421,6 +425,32 @@ Resources:
         - !Ref PrivateRouteTableAZA
         - !Ref PrivateRouteTableAZB
       ServiceName: !Sub 'com.amazonaws.${AWS::Region}.s3'
+      VpcId: !Ref ApperVPC
+
+  STSEndpoint:
+    Type: AWS::EC2::VPCEndpoint
+    Properties:
+      PrivateDnsEnabled: true
+      SecurityGroupIds:
+        - !Ref ECRSecurityGroup
+      ServiceName: !Sub com.amazonaws.${AWS::Region}.sts
+      SubnetIds:
+        - !Ref PrivateSubnetAZA
+        - !Ref PrivateSubnetAZB
+      VpcEndpointType: Interface
+      VpcId: !Ref ApperVPC
+  
+  KMSEndpoint:
+    Type: AWS::EC2::VPCEndpoint
+    Properties:
+      PrivateDnsEnabled: true
+      SecurityGroupIds:
+        - !Ref ECRSecurityGroup
+      ServiceName: !Sub com.amazonaws.${AWS::Region}.kms
+      SubnetIds:
+        - !Ref PrivateSubnetAZA
+        - !Ref PrivateSubnetAZB
+      VpcEndpointType: Interface
       VpcId: !Ref ApperVPC
 
   

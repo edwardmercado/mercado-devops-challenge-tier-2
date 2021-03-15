@@ -44,8 +44,8 @@ Resources:
       Family: emercado-tier2-task
       ExecutionRoleArn: !Ref TaskRole
       TaskRoleArn: !Ref TaskRole
-      Cpu: 512
-      Memory: 1024
+      Cpu: 1024
+      Memory: 4096
       RequiresCompatibilities:
         - "FARGATE"
         - "EC2"
@@ -53,9 +53,9 @@ Resources:
         - Name: express-miniapp-container
           PortMappings:
             - ContainerPort: 1337
-          Cpu: 256
+          Cpu: 512
           # Essential: true
-          Memory: 512
+          Memory: 2048
           Image: 485323199507.dkr.ecr.ap-southeast-1.amazonaws.com/emercado-tier2-ecr-repository:latest
           Environment:
             - Name : HOST 

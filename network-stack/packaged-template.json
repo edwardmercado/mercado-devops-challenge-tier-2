@@ -268,6 +268,9 @@ Resources:
         ToPort: 3306
         SourceSecurityGroupId:
           Ref: AppSecurityGroup
+      - IpProtocol: -1
+        SourceSecurityGroupId:
+          Ref: AppSecurityGroup
       SecurityGroupEgress:
       - IpProtocol: tcp
         FromPort: 80
@@ -277,6 +280,9 @@ Resources:
       - IpProtocol: tcp
         FromPort: 3306
         ToPort: 3306
+        SourceSecurityGroupId:
+          Ref: AppSecurityGroup
+      - IpProtocol: -1
         SourceSecurityGroupId:
           Ref: AppSecurityGroup
   ECRSecurityGroup:
@@ -442,6 +448,34 @@ Resources:
         Fn::Sub: com.amazonaws.${AWS::Region}.s3
       VpcId:
         Ref: ApperVPC
+  STSEndpoint:
+    Type: AWS::EC2::VPCEndpoint
+    Properties:
+      PrivateDnsEnabled: true
+      SecurityGroupIds:
+      - Ref: ECRSecurityGroup
+      ServiceName:
+        Fn::Sub: com.amazonaws.${AWS::Region}.sts
+      SubnetIds:
+      - Ref: PrivateSubnetAZA
+      - Ref: PrivateSubnetAZB
+      VpcEndpointType: Interface
+      VpcId:
+        Ref: ApperVPC
+  KMSEndpoint:
+    Type: AWS::EC2::VPCEndpoint
+    Properties:
+      PrivateDnsEnabled: true
+      SecurityGroupIds:
+      - Ref: ECRSecurityGroup
+      ServiceName:
+        Fn::Sub: com.amazonaws.${AWS::Region}.kms
+      SubnetIds:
+      - Ref: PrivateSubnetAZA
+      - Ref: PrivateSubnetAZB
+      VpcEndpointType: Interface
+      VpcId:
+        Ref: ApperVPC
   PrivateRouteTableAZA:
     Type: AWS::EC2::RouteTable
     Properties:
@@ -472,48 +506,6 @@ Resources:
         Ref: PrivateRouteTableAZB
       SubnetId:
         Ref: PrivateSubnetAZB
-  NatGatewayAZA:
-    Type: AWS::EC2::NatGateway
-    Properties:
-      AllocationId:
-        Fn::GetAtt:
-        - EIPAZA
-        - AllocationId
-      SubnetId:
-        Ref: PublicSubnetAZA
-  EIPAZA:
-    Type: AWS::EC2::EIP
-    Properties:
-      Domain: vpc
-  NatGatewayAZB:
-    Type: AWS::EC2::NatGateway
-    Properties:
-      AllocationId:
-        Fn::GetAtt:
-        - EIPAZB
-        - AllocationId
-      SubnetId:
-        Ref: PublicSubnetAZB
-  EIPAZB:
-    Type: AWS::EC2::EIP
-    Properties:
-      Domain: vpc
-  PrivateRouteAZA:
-    Type: AWS::EC2::Route
-    Properties:
-      RouteTableId:
-        Ref: PrivateRouteTableAZA
-      DestinationCidrBlock: 0.0.0.0/0
-      NatGatewayId:
-        Ref: NatGatewayAZA
-  PrivateRouteAZB:
-    Type: AWS::EC2::Route
-    Properties:
-      RouteTableId:
-        Ref: PrivateRouteTableAZB
-      DestinationCidrBlock: 0.0.0.0/0
-      NatGatewayId:
-        Ref: NatGatewayAZB
 Outputs:
   VPCID:
     Description: A reference to the created VPC

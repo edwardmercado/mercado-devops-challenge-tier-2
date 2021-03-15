@@ -45,8 +45,8 @@ Resources:
         Ref: TaskRole
       TaskRoleArn:
         Ref: TaskRole
-      Cpu: 512
-      Memory: 1024
+      Cpu: 1024
+      Memory: 4096
       RequiresCompatibilities:
       - FARGATE
       - EC2
@@ -54,8 +54,8 @@ Resources:
       - Name: express-miniapp-container
         PortMappings:
         - ContainerPort: 1337
-        Cpu: 256
-        Memory: 512
+        Cpu: 512
+        Memory: 2048
         Image: 485323199507.dkr.ecr.ap-southeast-1.amazonaws.com/emercado-tier2-ecr-repository:latest
         Environment:
         - Name: HOST
