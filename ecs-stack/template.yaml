@@ -86,7 +86,7 @@ Resources:
     Type: AWS::ECS::Service
     Properties: 
       Cluster: !Ref AppECSCluster
-      DesiredCount: 0
+      DesiredCount: 2
       LaunchType: FARGATE
       PlatformVersion: 1.3.0
       SchedulingStrategy: REPLICA
@@ -119,7 +119,7 @@ Resources:
     Properties: 
       SecurityGroups: 
         - !ImportValue
-            AppSecurityGroup-tier2
+            LoadBalancerSecurityGroup-tier2
       Subnets:
         - !ImportValue
             PublicSubnetAZA-tier2
