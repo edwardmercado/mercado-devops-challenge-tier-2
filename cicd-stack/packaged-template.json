@@ -1,10 +1,9 @@
+
 AWSTemplateFormatVersion: '2010-09-09'
 Transform: AWS::Serverless-2016-10-31
-Description: >
-  Tier-2: Intermediate Challenge - AWS ECS - CICD Stack
+Description: 'Tier-2: Intermediate Challenge - AWS ECS - CICD Stack
 
+  '
 Resources:
   ArtifactBucket:
     Type: AWS::S3::Bucket
-
-  
