@@ -39,18 +39,18 @@ phases:
       - docker push $ACCOUNT_ID.dkr.ecr.$AWS_REGION.amazonaws.com/$IMAGE_REPO_NAME:$IMAGE_TAG
       
 
-# artifacts:
-#   files:
-#     - package.json
-#     - Procfile
-#     - src/index.js
-#     - src/middlewares.js
-#     - node_modules/**/*
-#     - .eslintrc.js
-#     - package-lock.json
-#     - .env
-#   name: express-miniapp
-#   base-directory: express-miniapp
+artifacts:
+  files:
+    - package.json
+    - Procfile
+    - src/index.js
+    - src/middlewares.js
+    - node_modules/**/*
+    - .eslintrc.js
+    - package-lock.json
+    - .env
+  name: express-miniapp
+  base-directory: express-miniapp
 
 cache:
   paths:

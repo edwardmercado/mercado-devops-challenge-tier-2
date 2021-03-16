@@ -165,3 +165,10 @@ Resources:
         - Type: forward
           TargetGroupArn: !Ref AppLoadBalancerTargetGroup
 
+Outputs:
+  AppLoadBalancerDNS:
+    Description: A reference to the ALB DNS
+    Value: !GetAtt AppLoadBalancer.DNSName
+    Export:
+      Name: AppLoadBalancerDNSName
+
