@@ -56,7 +56,20 @@ Resources:
           Cpu: 512
           # Essential: true
           Memory: 2048
-          Image: 485323199507.dkr.ecr.ap-southeast-1.amazonaws.com/emercado-tier2-ecr-repository:latest
+          # Image: 485323199507.dkr.ecr.ap-southeast-1.amazonaws.com/emercado-tier2-ecr-repository:latest
+          Image:
+            Fn::Join:
+              - ""
+              - - !Ref "AWS::AccountId"
+                - ".dkr.ecr."
+                - !Ref "AWS::Region"
+                - ".amazonaws.com/"
+                - Fn::ImportValue:
+                    ECRRepoName
+                - ":"
+                - Fn::ImportValue:
+                    ECRTagName
+            # !Sub "${AWS::AccountId}.dkr.ecr.${AWS::Region}.amazonaws.com/"
           Environment:
             - Name : HOST 
               Value: "emqlp1s10m39f9.cqnomkdi58mx.ap-southeast-1.rds.amazonaws.com"

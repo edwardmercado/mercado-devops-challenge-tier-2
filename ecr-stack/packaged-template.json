@@ -23,3 +23,8 @@ Outputs:
       Ref: MyContainerRepository
     Export:
       Name: ECRRepoName
+  ECRTag:
+    Description: A reference to the ECR repository tag
+    Value: latest
+    Export:
+      Name: ECRTagName

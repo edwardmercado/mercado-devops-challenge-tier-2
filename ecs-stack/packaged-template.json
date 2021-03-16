@@ -56,7 +56,16 @@ Resources:
         - ContainerPort: 1337
         Cpu: 512
         Memory: 2048
-        Image: 485323199507.dkr.ecr.ap-southeast-1.amazonaws.com/emercado-tier2-ecr-repository:latest
+        Image:
+          Fn::Join:
+          - ''
+          - - Ref: AWS::AccountId
+            - .dkr.ecr.
+            - Ref: AWS::Region
+            - .amazonaws.com/
+            - Fn::ImportValue: ECRRepoName
+            - ':'
+            - Fn::ImportValue: ECRTagName
         Environment:
         - Name: HOST
           Value: emqlp1s10m39f9.cqnomkdi58mx.ap-southeast-1.rds.amazonaws.com
