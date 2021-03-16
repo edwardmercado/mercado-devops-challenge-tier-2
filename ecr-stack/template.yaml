@@ -23,3 +23,10 @@ Resources:
               # - "ecr:InitiateLayerUpload"
               # - "ecr:UploadLayerPart"
               # - "ecr:CompleteLayerUpload"
+
+Outputs:
+  ECRRepo:
+    Description: A reference to the ECR repository
+    Value: !Ref MyContainerRepository
+    Export:
+      Name: ECRRepoName

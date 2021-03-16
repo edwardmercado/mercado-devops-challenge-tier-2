@@ -16,3 +16,10 @@ Resources:
           Effect: Allow
           Principal: '*'
           Action: '*'
+Outputs:
+  ECRRepo:
+    Description: A reference to the ECR repository
+    Value:
+      Ref: MyContainerRepository
+    Export:
+      Name: ECRRepoName

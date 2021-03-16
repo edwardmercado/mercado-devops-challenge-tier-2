@@ -65,6 +65,20 @@ Resources:
           Value:
             Fn::ImportValue:
               MyDBAddress-tier2
+        - Name: IMAGE_REPO_NAME
+          Type: PLAINTEXT
+          Value:
+            Fn::ImportValue:
+              ECRRepoName
+        - Name: IMAGE_TAG
+          Type: PLAINTEXT
+          Value: latest
+        - Name: ACCOUNT_ID
+          Type: PLAINTEXT
+          Value: !Ref "AWS::AccountId"
+        - Name: AWS_REGION
+          Type: PLAINTEXT
+          Value: !Ref "AWS::Region"
       Source:
         Type: CODEPIPELINE
       TimeoutInMinutes: 15
