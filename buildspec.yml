@@ -10,36 +10,44 @@ phases:
       - echo This always runs even if the update or install command fails 
   pre_build:
     commands:
-      - echo Installing dependencies
+      - echo Logging in to Amazon ECR...
+      - aws ecr get-login-password --region ap-southeast-1 | docker login --username AWS --password-stdin 485323199507.dkr.ecr.ap-southeast-1.amazonaws.com
     finally: 
       - echo This always runs even if the pre build phase commands fails
   build:
     commands:
       - echo Entered the build phase...
       - echo Build started on `date`
-
+      - echo Building the Docker image...
+      - cd express-miniapp
+      # Build the .env values
+      - printf "HOST=$DB_ADDRESS\nUSERNAME=dbusername\nPASSWORD=itsyourday\nDATABASE=mydb" > .env
+      - docker build -t emercado-tier2-ecr-repository .
+      - docker tag emercado-tier2-ecr-repository:latest 485323199507.dkr.ecr.ap-southeast-1.amazonaws.com/emercado-tier2-ecr-repository:latest
+      
     finally: 
       - echo This always runs even if the build phase commands fails
   post_build:
     commands:
-      - echo Entered the post_build phase...
       - echo Build completed on `date`
+      - echo Entered the post_build phase...
+      - echo Pushing the Docker image...
+      - docker push 485323199507.dkr.ecr.ap-southeast-1.amazonaws.com/emercado-tier2-ecr-repository:latest
+      
 
-artifacts:
-  files:
-    - package.json
-    - Procfile
-    - src/index.js
-    - src/middlewares.js
-    - node_modules/**/*
-    - .eslintrc.js
-    - .ebextensions
-    - .ebextensions/*
-    - package-lock.json
-    - .env
-  name: express-miniapp
-  base-directory: express-miniapp
+# artifacts:
+#   files:
+#     - package.json
+#     - Procfile
+#     - src/index.js
+#     - src/middlewares.js
+#     - node_modules/**/*
+#     - .eslintrc.js
+#     - package-lock.json
+#     - .env
+#   name: express-miniapp
+#   base-directory: express-miniapp
 
-cache:
-  paths:
-    - node_modules/**/*
+# cache:
+#   paths:
+#     - node_modules/**/*

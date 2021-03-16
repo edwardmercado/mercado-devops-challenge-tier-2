@@ -54,6 +54,19 @@ Resources:
         Type: LINUX_CONTAINER
         ComputeType: BUILD_GENERAL1_SMALL
         Image: aws/codebuild/standard:2.0
+        EnvironmentVariables:
+        - Name: DB_NAME
+          Type: PLAINTEXT
+          Value:
+            Fn::ImportValue: MyDB-tier2
+        - Name: DB_PORT
+          Type: PLAINTEXT
+          Value:
+            Fn::ImportValue: MyDBPort-tier2
+        - Name: DB_ADDRESS
+          Type: PLAINTEXT
+          Value:
+            Fn::ImportValue: MyDBAddress-tier2
       Source:
         Type: CODEPIPELINE
       TimeoutInMinutes: 15
