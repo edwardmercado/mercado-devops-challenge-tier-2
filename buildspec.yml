@@ -10,6 +10,10 @@ phases:
       - echo This always runs even if the update or install command fails 
   pre_build:
     commands:
+      - echo Initialize docker deamon
+      - nohup /usr/local/bin/dockerd --host=unix:///var/run/docker.sock --host=tcp://0.0.0.0:2375 --storage-driver=overlay&
+      -  timeout 15 sh -c "until docker info; do echo .; sleep 1; done"
+      
       - echo Logging in to Amazon ECR...
       - aws ecr get-login-password --region ap-southeast-1 | docker login --username AWS --password-stdin 485323199507.dkr.ecr.ap-southeast-1.amazonaws.com
     finally: 
@@ -48,6 +52,6 @@ phases:
 #   name: express-miniapp
 #   base-directory: express-miniapp
 
-# cache:
-#   paths:
-#     - node_modules/**/*
+cache:
+  paths:
+    - node_modules/**/*

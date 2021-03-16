@@ -54,6 +54,7 @@ Resources:
         Type: LINUX_CONTAINER
         ComputeType: BUILD_GENERAL1_SMALL
         Image: aws/codebuild/standard:2.0
+        PrivilegedMode: true
         EnvironmentVariables:
         - Name: DB_NAME
           Type: PLAINTEXT
@@ -72,7 +73,7 @@ Resources:
       TimeoutInMinutes: 15
       LogsConfig:
         CloudWatchLogs:
-          GroupName: tier-1-challenge-build-log-group
+          GroupName: tier-2-challenge-build-log-group
           Status: ENABLED
   AppPipeline:
     Type: AWS::CodePipeline::Pipeline
