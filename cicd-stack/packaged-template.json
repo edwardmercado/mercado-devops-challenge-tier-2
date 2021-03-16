@@ -7,3 +7,110 @@ Description: 'Tier-2: Intermediate Challenge - AWS ECS - CICD Stack
 Resources:
   ArtifactBucket:
     Type: AWS::S3::Bucket
+  CodePipelineServiceRole:
+    Type: AWS::IAM::Role
+    Properties:
+      AssumeRolePolicyDocument:
+        Version: '2012-10-17'
+        Statement:
+        - Effect: Allow
+          Principal:
+            Service:
+            - codepipeline.amazonaws.com
+            - codebuild.amazonaws.com
+            - codedeploy.amazonaws.com
+            - s3.amazonaws.com
+            - cloudformation.amazonaws.com
+          Action:
+          - sts:AssumeRole
+      Path: /
+      Policies:
+      - PolicyName: root
+        PolicyDocument:
+          Version: '2012-10-17'
+          Statement:
+          - Effect: Allow
+            Action: '*'
+            Resource: '*'
+  AppCodeBuildProject:
+    Type: AWS::CodeBuild::Project
+    Properties:
+      ServiceRole:
+        Fn::GetAtt:
+        - CodePipelineServiceRole
+        - Arn
+      Cache:
+        Type: S3
+        Location:
+          Fn::Join:
+          - /
+          - - Ref: ArtifactBucket
+            - projectcache
+      Artifacts:
+        Type: CODEPIPELINE
+        Location:
+          Ref: ArtifactBucket
+      Environment:
+        Type: LINUX_CONTAINER
+        ComputeType: BUILD_GENERAL1_SMALL
+        Image: aws/codebuild/standard:2.0
+      Source:
+        Type: CODEPIPELINE
+      TimeoutInMinutes: 15
+      LogsConfig:
+        CloudWatchLogs:
+          GroupName: tier-1-challenge-build-log-group
+          Status: ENABLED
+  AppPipeline:
+    Type: AWS::CodePipeline::Pipeline
+    Properties:
+      ArtifactStore:
+        Location:
+          Ref: ArtifactBucket
+        Type: S3
+      RoleArn:
+        Fn::GetAtt:
+        - CodePipelineServiceRole
+        - Arn
+      Stages:
+      - Name: Source
+        Actions:
+        - Name: SourceAction
+          ActionTypeId:
+            Category: Source
+            Owner: AWS
+            Version: '1'
+            Provider: CodeStarSourceConnection
+          OutputArtifacts:
+          - Name: express-miniapp
+          Configuration:
+            ConnectionArn:
+              Fn::GetAtt:
+              - CodeStarConnection
+              - ConnectionArn
+            FullRepositoryId: edwardmercado/mercado-devops-challenge-tier-2
+            BranchName: main
+            OutputArtifactFormat: CODEBUILD_CLONE_REF
+          RunOrder: 1
+      - Name: Build
+        Actions:
+        - Name: BuildAction
+          InputArtifacts:
+          - Name: express-miniapp
+          OutputArtifacts:
+          - Name: express-miniapp-run
+          ActionTypeId:
+            Category: Build
+            Owner: AWS
+            Version: 1
+            Provider: CodeBuild
+          Configuration:
+            ProjectName:
+              Ref: AppCodeBuildProject
+            PrimarySource: express-miniapp
+          RunOrder: 1
+  CodeStarConnection:
+    Type: AWS::CodeStarConnections::Connection
+    Properties:
+      ConnectionName: GitHubToPipelineConnection-tier2
+      ProviderType: GitHub

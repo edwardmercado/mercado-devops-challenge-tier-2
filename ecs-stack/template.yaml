@@ -146,7 +146,7 @@ Resources:
     Type: AWS::ElasticLoadBalancingV2::Listener
     Properties:
       LoadBalancerArn: !Ref AppLoadBalancer
-      Port: 1337
+      Port: 80
       Protocol: HTTP
       DefaultActions:
         - Type: forward

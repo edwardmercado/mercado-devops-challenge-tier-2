@@ -2,7 +2,7 @@
 This repository is for the Apper DevOps Engineer Technical Challenge! 
 
 ### Working URL:
-Tier2: emerc-AppLo-UU9XPZL8AHRF-2088293350.ap-southeast-1.elb.amazonaws.com
+Tier2: http://emerc-applo-uu9xpzl8ahrf-2088293350.ap-southeast-1.elb.amazonaws.com/
 
 ### Project Repo and final commit hash:
 
